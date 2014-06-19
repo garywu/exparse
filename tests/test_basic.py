@@ -45,10 +45,10 @@ def test_tag(html):
     assert result == {'data': u'tag2 text'}
 
 def test_class(html):
-    path = {'data':['.//tag1[@class="plain"]']}
+    path = {'data':'.//tag1[@class="plain"]'}
 
     result = exparse.parse(path, html)
-    assert result == {'data': ['\n                tag1 text\n                ']}
+    assert result == {'data': 'tag1 text'}
 
 def test_array(html):
     path = {'data':['.//ul[@class="liststyle"]/li']}
@@ -92,6 +92,7 @@ def test_simple_html():
                   'middle':'.//div[@id="middle"]',
                   'top_group':{'.//div[@class="top_group"]': top_group_xpath},
                   'next':{'link':'.//a[@id="another_link"]/@href', 'text':'.//p'},
+                  #'next_link':{'link':'.//a[@id="another_link"]/@href'},
                   'links':[{'.//div[@id="top"]/a':exparse.a}]}
     '''
     'name':'.//path',
@@ -102,7 +103,8 @@ def test_simple_html():
     'name':[{'.//path':abc}]
     '''
     data = exparse.parse(html_xpath, html)
-    assert data['top_group'] == {'message': u'message message', 'img': {'src': u'img_1'}, 'title': u'Title Title'}
+    assert data['top_group'] == {'message': u'message message', 'img': {'src': u'img_1', 'alt':'', 'title':''}, 'title': u'Title Title'}
+    assert data['next'] == {'link':'another_link', 'text':'message message'}
 
 def test_simple_xml():
     xml='''

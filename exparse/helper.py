@@ -4,6 +4,7 @@ import logging
 mylogger = logging.getLogger(__name__)
 
 from itertools import chain
+from functools import partial
 
 from lxml import etree
 from lxml import html
@@ -56,4 +57,29 @@ def debug_lines(text, lines=10):
         mylogger.debug('\n\n' + text)
 
 def containing_class(class_name):
-    return 'contains(concat(" ",normalize-space(@class), " "), " ' + class_name + ' ")';
+    return 'contains(concat(" ",normalize-space(@class), " "), " ' + class_name + ' ")'
+
+def get_all_text(elm, sep = ' '):
+    text = ''
+    if elm.text:
+        text = elm.text.strip()
+    for c in elm.getchildren():
+        text += get_all_text(c, sep)
+    if elm.tail and elm.tail.strip():
+        text += sep + elm.tail.strip() + sep
+    return text
+
+get_all_text_newline = partial(get_all_text, sep = '\n')
+get_all_text_tab = partial(get_all_text, sep = '\t')
+
+def stringify_children(elm):
+    parts = ([elm.text.strip() if elm.text else ''] +
+             list(
+                 chain(*(
+                     [c.text.strip() if c.text else '', stringify_children(c), c.tail.strip() if c.tail else '']
+                     for c in elm.getchildren()
+                    )
+                 )
+             ) + [elm.tail.strip() if elm.tail else '']
+    )
+    return ''.join(filter(None, parts))

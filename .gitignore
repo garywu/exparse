@@ -56,3 +56,9 @@ docs/_build/
 .idea
 exparse.iml
 
+#mercurial 
+.hg
+
+#private test data
+fixtures
+tests/test_table.py
