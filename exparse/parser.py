@@ -288,6 +288,16 @@ def xml_to_tuple(xml, xpaths, converters = None, strip_namespace = True):
     '''
 
 def parse(xpaths, html = None, xml = None, converters = None, base_url = None, strip_namespace = True):
+    '''
+    Parse either html or xml to a object defined by the xpaths. Resulting object could be a string, list, dict.
+    :param xpaths: dict of xpaths. each data is extracted from html or xml based on each xpath.
+    :param html: if present parse as html.
+    :param xml: if present parse as xml
+    :param converters: any data type converters used during parser
+    :param base_url: base_url to convert relative url found to abusolute url
+    :param strip_namespace: for xml strips namespace before parse
+    :return: object that contains found data pointed to by xpaths
+    '''
     if not html:
         return
     if xml:
