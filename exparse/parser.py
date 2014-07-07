@@ -155,43 +155,54 @@ def parse_string(root, xpath, attr_type='u', converters = None, base_url = None,
                 result.append(data)
         return result
 
-def parse_element(root, xpaths, converters=None, base_url = None):
-    result = {}
-    for key in xpaths:
-        attr_types = []
+def parse_element_one(root, key, xpath, converters=None, base_url = None):
+    attr_types = []
+    name = None
+    if key:
         parts = key.split(':')
         if len(parts) > 1:
             name = parts[0]
             attr_types.extend(parts[1:])
         else:
             name = key
-        if len(attr_types) == 1 and 'omit' in attr_types or 'o' in attr_types:
-            attr_types.append('u')
-        if len(attr_types) == 0:
-            attr_types = ['u']
+    if len(attr_types) == 1 and 'omit' in attr_types or 'o' in attr_types:
+        attr_types.append('u')
+    if len(attr_types) == 0:
+        attr_types = ['u']
 
-        xpath = xpaths[key]
-        #mylogger.info('name: %s, xpaths: %s, xpath: %s' % (name, ('%s' % xpaths)[:50], ('%s' % xpath)[:50]))
+    #mylogger.info('name: %s, xpaths: %s, xpath: %s' % (name, ('%s' % xpaths)[:50], ('%s' % xpath)[:50]))
+    if isinstance(xpath, dict):
+        data = parse_dict(root, name, xpath, converters, base_url)
+    elif isinstance(xpath, list):
+        assert len(xpath) == 1 and 'Only single item array is supported. Array means result is array not input'
+        xpath = xpath[0]
         if isinstance(xpath, dict):
-            data = parse_dict(root, name, xpath, converters, base_url)
-        elif isinstance(xpath, list):
-            assert len(xpath) == 1 and 'Only single item array is supported. Array means result is array not input'
-            xpath = xpath[0]
-            if isinstance(xpath, dict):
-                data = parse_dict(root, name, xpath, converters, base_url, array = True)
-            else:
-                data = parse_string(root, xpath, attr_types, converters, base_url, array = True)
+            data = parse_dict(root, name, xpath, converters, base_url, array = True)
         else:
-            data = parse_string(root, xpath, attr_types, converters, base_url)
+            data = parse_string(root, xpath, attr_types, converters, base_url, array = True)
+    else:
+        data = parse_string(root, xpath, attr_types, converters, base_url)
 
-        if 'omit' in attr_types or 'o' in attr_types:
-            if len(xpaths) > 1:
-                assert 0 and 'additional data omitted %s' % key
-            return data
-        else:
-            result[name] = data if data else ''
-            mylogger.info(('return name: %s, result: %s' % (name, ('%s' % result)[:100])))
-    return result
+    if name is None or ('omit' in attr_types or 'o' in attr_types):
+        return data
+    else:
+        return {name:data}
+
+def parse_element(root, xpaths, converters=None, base_url = None):
+    result = {}
+    if isinstance(xpaths, dict):
+        for key in xpaths:
+            data = parse_element_one(root, key, xpaths[key], converters, base_url)
+            if isinstance(data, dict):
+                name, value = data.popitem()
+                result[name] = value if value else ''
+            else:
+                if len(xpaths) > 1:
+                    assert 0 and 'additional data omitted %s' % key
+                return data
+        return result
+    else:
+        return parse_element_one(root, None, xpaths, converters, base_url)
 
 def xml_to_tuple(xml, xpaths, converters = None, strip_namespace = True):
     if not xml:
