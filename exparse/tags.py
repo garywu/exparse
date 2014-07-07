@@ -4,7 +4,7 @@ from helper import get_all_text, get_all_text_newline, get_all_text_tab
 from parser import parse, parse_element, parse_string
 
 img = {'src':'.//@src', 'alt':'.//@alt', 'title':'.//@title'}
-a = {'href':'.//@href', 'target':'.//@target', 'text':'text()'}
+a = {'href':'.//@href', 'target':'.//@target', 'text':'text()', 'all_text':{'.':lambda x: get_all_text(x).strip()}}
 ul = {'data:o':[{'.//li':lambda x: get_all_text(x).strip()}]}
 
 input = {
@@ -28,6 +28,7 @@ tables_xpath = {
 
 class Td(object):
     def __init__(self, element, value_xpath):
+        self.element = element
         self.attrib = element.attrib
         self.text = element.text
         self.id = element.attrib.get('id')
